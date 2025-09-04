@@ -4,6 +4,7 @@ from mmpy_bot import Bot, Settings
 
 from ClickUpBot.settings import settings as app_settings
 from ClickUpBot.plugins.my_plugin import MyPlugin
+from ClickUpBot.plugins.clickup_plugin import ClickUpPlugin
 
 
 def build_bot_settings() -> Settings:
@@ -24,7 +25,7 @@ def build_bot_settings() -> Settings:
 def main() -> None:
     bot = Bot(
         settings=build_bot_settings(),
-        plugins=[MyPlugin()],
+        plugins=[MyPlugin(), ClickUpPlugin()],
     )
     bot.run()
 

@@ -22,6 +22,11 @@ class AppSettings(BaseSettings):
     WEBHOOK_HOST_URL: str | None = None
     WEBHOOK_HOST_PORT: int | None = None
 
+    # ClickUp API configuration
+    CLICKUP_API_TOKEN: str | None = None
+    CLICKUP_LIST_ID: str | None = None
+    CLICKUP_BASE_URL: str = "https://api.clickup.com/api/v2"
+
     class Config:
         env_file = ".env"
 
