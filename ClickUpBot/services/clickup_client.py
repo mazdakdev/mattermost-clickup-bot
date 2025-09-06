@@ -268,3 +268,74 @@ def delete_task(task_id: str) -> Tuple[bool, Any]:
 #     return _make_api_request(url)
 
 
+def get_team_tasks(team_id: str, include_closed: bool = False, assignees: Optional[List[str]] = None, 
+                   statuses: Optional[List[str]] = None, due_date_gt: Optional[int] = None,
+                   due_date_lt: Optional[int] = None) -> Tuple[bool, Any]:
+    """Get all tasks for a team with filtering options. Returns (success, tasks_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/team/{team_id}/task"
+    params = []
+    
+    if include_closed:
+        params.append("include_closed=true")
+    if assignees:
+        for assignee in assignees:
+            params.append(f"assignees[]={assignee}")
+    if statuses:
+        for status in statuses:
+            params.append(f"statuses[]={status}")
+    if due_date_gt:
+        params.append(f"due_date_gt={due_date_gt}")
+    if due_date_lt:
+        params.append(f"due_date_lt={due_date_lt}")
+    
+    if params:
+        url += "?" + "&".join(params)
+    
+    return _make_api_request(url)
+
+
+def get_team_members(team_id: str) -> Tuple[bool, Any]:
+    """Get team members. Returns (success, members_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/team/{team_id}/member"
+    return _make_api_request(url)
+
+
+def get_task_time_entries(task_id: str) -> Tuple[bool, Any]:
+    """Get time entries for a task. Returns (success, time_entries_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/task/{task_id}/time"
+    return _make_api_request(url)
+
+
+def get_team_time_entries(team_id: str, start_date: Optional[int] = None, 
+                         end_date: Optional[int] = None) -> Tuple[bool, Any]:
+    """Get time entries for a team. Returns (success, time_entries_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/team/{team_id}/time_entries"
+    params = []
+    
+    if start_date:
+        params.append(f"start_date={start_date}")
+    if end_date:
+        params.append(f"end_date={end_date}")
+    
+    if params:
+        url += "?" + "&".join(params)
+    
+    return _make_api_request(url)
+
+

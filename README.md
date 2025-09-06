@@ -128,6 +128,55 @@ The bot provides complete CRUD (Create, Read, Update, Delete) functionality for 
 - Only `CLICKUP_API_TOKEN` is required - no need to hardcode list IDs
 - All operations include safety confirmations and detailed error handling
 
+### ClickUp Reporting and Analytics
+
+The bot provides comprehensive reporting and analytics features to track team performance and task progress:
+
+#### **Daily Report** - `daily report`
+- Shows tasks created and completed today
+- Identifies overdue tasks
+- Provides daily productivity summary
+- Tracks team activity and progress
+
+#### **Weekly Report** - `weekly report`
+- Weekly task completion statistics
+- Team performance metrics
+- Completion rate analysis
+- Top performer recognition
+- Overdue task tracking
+
+#### **Overdue Tasks** - `overdue tasks`
+- Lists all overdue tasks with days overdue
+- Categorizes by urgency (Critical, Urgent, Recent)
+- Helps prioritize work and catch up on delays
+- Provides clear visibility into bottlenecks
+
+#### **Completed Tasks** - `completed tasks`
+- Shows tasks completed in the last 7 days
+- Tracks completion trends
+- Identifies productive team members
+- Provides completion history
+
+#### **Team Analytics** - `team analytics`
+- Comprehensive team performance metrics
+- Task status breakdown and distribution
+- Individual team member performance
+- Priority analysis and workload distribution
+- Completion rates and productivity insights
+
+#### **Task Summary** - `task summary`
+- Quick overview of all tasks
+- Upcoming deadlines (next 7 days)
+- Overdue task alerts
+- High-level project status
+
+#### **Reporting Features**
+- **Interactive Selection** - Choose teams and date ranges
+- **Rich Analytics** - Detailed metrics and insights
+- **Performance Tracking** - Monitor team and individual progress
+- **Deadline Management** - Stay on top of upcoming and overdue tasks
+- **Trend Analysis** - Track completion rates and productivity patterns
+
 ### GitHub CI/CD Setup
 
 The project includes automated deployment to your VPS via GitHub Actions.
