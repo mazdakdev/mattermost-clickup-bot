@@ -25,7 +25,7 @@ WEBHOOK_HOST_ENABLED=false
 
 # ClickUp
 CLICKUP_API_TOKEN=your_clickup_token
-CLICKUP_LIST_ID=your_clickup_list_id
+# CLICKUP_LIST_ID is now optional - the bot will let you select interactively
 ```
 
 All values have sensible defaults except `BOT_TOKEN` and `BOT_TEAM` which you should set.
@@ -43,7 +43,17 @@ Send `wake up` in a channel where the bot is present, or `@botname hey` to test 
 - For advanced features (regex, direct-only, allowed users/channels, click commands, webhooks, scheduling), follow `mmpy_bot` docs and use the examples in `my_plugin.py` as a starting point.
 
 ### ClickUp task creation
-- Trigger by sending `create task` and follow the prompts for name, description, and due date.
-- On confirmation, the bot calls ClickUp's API using `CLICKUP_API_TOKEN` and `CLICKUP_LIST_ID`.
-- `due_date` accepts `YYYY-MM-DD`. It will be set to 23:59:59 UTC for that day.
+- Trigger by sending `create task` and follow the interactive prompts:
+  1. **Task name** - Enter the name of your task
+  2. **Description** - Add a description (or type 'skip')
+  3. **Due date** - Set due date in YYYY-MM-DD format (or type 'skip')
+  4. **List selection** - Navigate through your ClickUp hierarchy:
+     - Select a team from available teams
+     - Select a space from the chosen team
+     - Select a folder (or choose to use lists directly in the space)
+     - Select the final list where the task will be created
+  5. **Confirmation** - Review all details and confirm creation
+- The bot dynamically fetches your ClickUp teams, spaces, folders, and lists
+- You can navigate back through the selection process using 'back' or cancel anytime with 'cancel'
+- Only `CLICKUP_API_TOKEN` is required - no need to hardcode list IDs
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from mmpy_bot import Bot, Settings
 
 from ClickUpBot.settings import settings as app_settings
