@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from mmpy_bot import Plugin, listen_to
 from mmpy_bot import Message
@@ -900,7 +901,8 @@ class ClickUpPlugin(Plugin):
             response += f"**Description:**\n{task['description']}\n"
         
         if task.get('due_date'):
-            response += f"**Due Date:** {task['due_date']}\n"
+            due_date = self._parse_date(task['due_date'])
+            response += f"**Due Date:** {due_date.strftime('%Y-%m-%d %H:%M:%S UTC') if due_date else task['due_date']}\n"
         
         if task.get('priority'):
             response += f"**Priority:** {task.get('priority', {}).get('priority', 'Normal')}\n"
@@ -916,9 +918,35 @@ class ClickUpPlugin(Plugin):
         if task.get('url'):
             response += f"**URL:** {task['url']}\n"
         
-        response += f"\n**Created:** {task.get('date_created', 'Unknown')}"
-        if task.get('date_updated'):
-            response += f"\n**Last Updated:** {task['date_updated']}"
+        created_date = self._parse_date(task.get('date_created'))
+        updated_date = self._parse_date(task.get('date_updated'))
+        
+        response += f"\n**Created:** {created_date.strftime('%Y-%m-%d %H:%M:%S UTC') if created_date else 'Unknown'}"
+        if updated_date:
+            response += f"\n**Last Updated:** {updated_date.strftime('%Y-%m-%d %H:%M:%S UTC')}"
         
         self.driver.reply_to(message, response)
+
+    def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
+        """Parse date string to datetime object."""
+        if not date_str:
+            return None
+        
+        try:
+            # Handle different date formats
+            if isinstance(date_str, str):
+                # Try timestamp in milliseconds first (ClickUp format)
+                if date_str.isdigit() and len(date_str) == 13:
+                    timestamp = int(date_str) / 1000  # Convert milliseconds to seconds
+                    return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+                # Try ISO format
+                elif 'T' in date_str:
+                    return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                # Try simple date format
+                else:
+                    return datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            pass
+        
+        return None
 
