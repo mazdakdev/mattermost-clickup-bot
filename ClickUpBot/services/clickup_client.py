@@ -191,24 +191,80 @@ def create_task(name: str, list_id: str, description: Optional[str] = None, due_
             pass
 
     data = json.dumps(payload).encode("utf-8")
-    req = request.Request(url, data=data, method="POST")
-    req.add_header("Authorization", cfg.api_token)
-    req.add_header("Content-Type", "application/json")
+    return _make_api_request(url, method="POST", data=data)
 
-    try:
-        with request.urlopen(req) as resp:
-            body = resp.read().decode("utf-8")
-            if 200 <= resp.status < 300:
-                try:
-                    return True, json.loads(body)
-                except json.JSONDecodeError:
-                    return True, {"raw": body}
-            else:
-                return False, f"HTTP {resp.status}: {body}"
-    except error.HTTPError as e:
-        body = e.read().decode("utf-8") if hasattr(e, "read") else str(e)
-        return False, f"HTTPError {e.code}: {body}"
-    except Exception as e:  # noqa: BLE001 broad for network
-        return False, str(e)
+
+def get_task(task_id: str) -> Tuple[bool, Any]:
+    """Get a task by ID. Returns (success, task_data_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/task/{task_id}"
+    return _make_api_request(url)
+
+
+def get_tasks_from_list(list_id: str, include_closed: bool = False) -> Tuple[bool, Any]:
+    """Get all tasks from a list. Returns (success, tasks_data_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/list/{list_id}/task"
+    if include_closed:
+        url += "?include_closed=true"
+    
+    return _make_api_request(url)
+
+
+def update_task(task_id: str, updates: Dict[str, Any]) -> Tuple[bool, Any]:
+    """Update a task. Returns (success, updated_task_data_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/task/{task_id}"
+
+    # Handle due_date conversion if present
+    if "due_date" in updates and updates["due_date"]:
+        try:
+            dt = datetime.strptime(updates["due_date"], "%Y-%m-%d").replace(
+                hour=23, minute=59, second=59, tzinfo=timezone.utc
+            )
+            updates["due_date"] = str(int(dt.timestamp() * 1000))
+            updates["due_date_time"] = True
+        except ValueError:
+            # ignore invalid date
+            pass
+
+    data = json.dumps(updates).encode("utf-8")
+    return _make_api_request(url, method="PUT", data=data)
+
+
+def delete_task(task_id: str) -> Tuple[bool, Any]:
+    """Delete a task. Returns (success, result_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/task/{task_id}"
+    return _make_api_request(url, method="DELETE")
+
+
+def search_tasks(query: str, team_id: Optional[str] = None) -> Tuple[bool, Any]:
+    """Search for tasks. Returns (success, search_results_or_error)."""
+    cfg = get_config()
+    if cfg is None:
+        return False, "Missing CLICKUP_API_TOKEN in environment."
+
+    url = f"{cfg.base_url}/task"
+    params = [f"name={query}"]
+    if team_id:
+        params.append(f"team_ids[]={team_id}")
+    
+    if params:
+        url += "?" + "&".join(params)
+    
+    return _make_api_request(url)
 
 
