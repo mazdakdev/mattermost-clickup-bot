@@ -630,7 +630,11 @@ class ReportingPlugin(Plugin):
         # Priority analysis
         priority_counts = {}
         for task in tasks:
-            priority = task.get('priority', {}).get('priority', 'Normal')
+            priority_obj = task.get('priority')
+            if priority_obj and isinstance(priority_obj, dict):
+                priority = priority_obj.get('priority', 'Normal')
+            else:
+                priority = 'Normal'
             priority_counts[priority] = priority_counts.get(priority, 0) + 1
         
         if priority_counts:
