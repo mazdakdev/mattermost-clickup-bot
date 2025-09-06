@@ -1,3 +1,4 @@
+import threading
 from mmpy_bot import Bot, Settings
 
 from ClickUpBot.settings import settings as app_settings
@@ -20,7 +21,20 @@ def build_bot_settings() -> Settings:
     )
 
 
+def start_health_server():
+    """Start the health check server in a separate thread."""
+    try:
+        from health_check import start_health_server
+        start_health_server()
+    except ImportError:
+        print("Health check server not available")
+
+
 def main() -> None:
+    # Start health check server in background
+    health_thread = threading.Thread(target=start_health_server, daemon=True)
+    health_thread.start()
+    
     bot = Bot(
         settings=build_bot_settings(),
         plugins=[MyPlugin(), ClickUpPlugin()],

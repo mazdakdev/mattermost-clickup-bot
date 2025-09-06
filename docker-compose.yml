@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  clickup-bot:
+    build: .
+    container_name: mattermost-clickup-bot
+    restart: unless-stopped
+    environment:
+      # Mattermost configuration
+      - MATTERMOST_URL=${MATTERMOST_URL:-http://127.0.0.1}
+      - MATTERMOST_PORT=${MATTERMOST_PORT:-8065}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - BOT_TEAM=${BOT_TEAM}
+      - SSL_VERIFY=${SSL_VERIFY:-false}
+      - RESPOND_CHANNEL_HELP=${RESPOND_CHANNEL_HELP:-false}
+      
+      # Webhook configuration (optional)
+      - WEBHOOK_HOST_ENABLED=${WEBHOOK_HOST_ENABLED:-false}
+      - WEBHOOK_HOST_URL=${WEBHOOK_HOST_URL:-http://0.0.0.0}
+      - WEBHOOK_HOST_PORT=${WEBHOOK_HOST_PORT:-5001}
+      
+      # ClickUp configuration
+      - CLICKUP_API_TOKEN=${CLICKUP_API_TOKEN}
+      - CLICKUP_LIST_ID=${CLICKUP_LIST_ID:-}
+      - CLICKUP_BASE_URL=${CLICKUP_BASE_URL:-https://api.clickup.com/api/v2}
+    
+    # Use environment file if it exists
+    env_file:
+      - .env
+    
+    # Expose webhook port if enabled
+    ports:
+      - "${WEBHOOK_HOST_PORT:-5001}:${WEBHOOK_HOST_PORT:-5001}"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M

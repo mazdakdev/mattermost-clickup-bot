@@ -32,9 +32,51 @@ All values have sensible defaults except `BOT_TOKEN` and `BOT_TEAM` which you sh
 
 ### Run
 
-```
+#### Local Development
+```bash
 python my_bot.py
 ```
+
+#### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the bot
+docker-compose down
+```
+
+#### Production Deployment on VPS
+1. **Setup VPS** (run once):
+   ```bash
+   # Make deploy script executable and run it
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+2. **Configure Environment**:
+   ```bash
+   # Copy environment template
+   cp env.production.template .env
+   
+   # Edit with your actual values
+   nano .env
+   ```
+
+3. **Deploy**:
+   ```bash
+   # Start the service
+   sudo systemctl start mattermost-clickup-bot
+   
+   # Check status
+   sudo systemctl status mattermost-clickup-bot
+   
+   # View logs
+   docker-compose logs -f
+   ```
 
 Send `wake up` in a channel where the bot is present, or `@botname hey` to test mention-only.
 
@@ -85,4 +127,43 @@ The bot provides complete CRUD (Create, Read, Update, Delete) functionality for 
 - You can navigate back through the selection process using 'back' or cancel anytime with 'cancel'
 - Only `CLICKUP_API_TOKEN` is required - no need to hardcode list IDs
 - All operations include safety confirmations and detailed error handling
+
+### GitHub CI/CD Setup
+
+The project includes automated deployment to your VPS via GitHub Actions.
+
+#### **Required GitHub Secrets**
+Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+
+- `VPS_HOST` - Your VPS IP address or domain
+- `VPS_USERNAME` - SSH username for your VPS
+- `VPS_SSH_KEY` - Private SSH key for VPS access
+- `VPS_PORT` - SSH port (optional, defaults to 22)
+
+#### **Deployment Flow**
+1. Push to `main` or `master` branch
+2. GitHub Actions automatically:
+   - Runs tests and linting
+   - Builds Docker image
+   - Pushes to GitHub Container Registry
+   - Deploys to your VPS via SSH
+   - Restarts the bot service
+
+#### **Manual Deployment**
+```bash
+# SSH into your VPS
+ssh user@your-vps-ip
+
+# Navigate to project directory
+cd /opt/mattermost-clickup-bot
+
+# Pull latest changes and restart
+git pull origin main
+docker-compose down
+docker-compose up -d
+```
+
+### Health Monitoring
+
+The bot includes a health check endpoint at `http://your-vps:5001/health` for monitoring and Docker health checks.
 
