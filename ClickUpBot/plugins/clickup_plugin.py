@@ -444,17 +444,7 @@ class ClickUpPlugin(Plugin):
             self.user_states.pop(message.user_id, None)
             return
 
-        if draft.operation == "search":
-            if draft.step == "search_query":
-                draft.search_query = content
-                draft.step = "confirm"
-                self.driver.reply_to(message, f"Searching for tasks with query: '{content}'. Type 'confirm' to search or 'cancel' to abort.")
-                return
-
-        if draft.step == "list_selection":
-            await self._handle_list_selection_for_viewing(message, draft, content)
-            return
-
+        # Handle task selection step (for view operation)
         if draft.step == "task_selection":
             try:
                 selection = int(content)
@@ -469,15 +459,30 @@ class ClickUpPlugin(Plugin):
                 self.driver.reply_to(message, "Please enter a valid number or 'cancel' to abort.")
             return
 
+        # Handle search query step (for search operation)
+        if draft.operation == "search" and draft.step == "search_query":
+            draft.search_query = content
+            draft.step = "confirm"
+            self.driver.reply_to(message, f"Searching for tasks with query: '{content}'. Type 'confirm' to search or 'cancel' to abort.")
+            return
+
+        # Handle list selection step
+        if draft.step == "list_selection":
+            await self._handle_list_selection_for_viewing(message, draft, content)
+            return
+
+        # Handle confirmation step
         if draft.step == "confirm":
             if content.lower() == "confirm":
                 if draft.operation == "search":
                     await self._execute_search(message, draft)
+                    self.user_states.pop(message.user_id, None)
                 elif draft.operation == "list_tasks":
                     await self._execute_list_tasks(message, draft)
+                    self.user_states.pop(message.user_id, None)
                 elif draft.operation == "view":
                     await self._execute_view_task(message, draft)
-                self.user_states.pop(message.user_id, None)
+                    # Don't pop user state here - user needs to select a task
                 return
 
             if content.lower() == "cancel":
@@ -788,34 +793,35 @@ class ClickUpPlugin(Plugin):
             folders_text += "\nType the number of the folder you want to use, 'back' to go back, or 'cancel' to abort."
             self.driver.reply_to(message, folders_text)
 
-    async def _execute_search(self, message: Message, draft: TaskViewDraft):
-        """Execute task search."""
-        success, results = clickup_client.search_tasks(draft.search_query, draft.selected_team_id)
-        if not success:
-            self.driver.reply_to(message, f"Search failed: {results}")
-            return
+    # async def _execute_search(self, message: Message, draft: TaskViewDraft):
+    #     """Execute task search."""
+    #     success, results = clickup_client.search_tasks(draft.search_query, draft.selected_team_id)
+    #     if not success:
+    #         self.driver.reply_to(message, f"Search failed: {results}")
+    #         return
         
-        if isinstance(results, dict) and "tasks" in results:
-            tasks = results["tasks"]
-            if not tasks:
-                self.driver.reply_to(message, f"No tasks found matching '{draft.search_query}'")
-                return
+    #     if isinstance(results, dict) and "tasks" in results:
+    #         tasks = results["tasks"]
+    #         if not tasks:
+    #             self.driver.reply_to(message, f"No tasks found matching '{draft.search_query}'")
+    #             return
             
-            response = f"Found {len(tasks)} task(s) matching '{draft.search_query}':\n\n"
-            for i, task in enumerate(tasks[:10], 1):  # Limit to 10 results
-                response += f"{i}. {task.get('name', 'Unnamed')} (ID: {task.get('id', '?')})\n"
-                if task.get('description'):
-                    desc = task['description'][:100] + "..." if len(task['description']) > 100 else task['description']
-                    response += f"   Description: {desc}\n"
-                response += f"   Status: {task.get('status', {}).get('status', 'Unknown')}\n"
-                response += f"   URL: {task.get('url', 'N/A')}\n\n"
+    #         response = f"Found {len(tasks)} task(s) matching '{draft.search_query}':\n\n"
+    #         for i, task in enumerate(tasks[:10], 1):  # Limit to 10 results
+    #             response += f"{i}. {task.get('name', 'Unnamed')} (ID: {task.get('id', '?')})\n"
+    #             if task.get('description'):
+    #                 desc = task['description'][:100] + "..." if len(task['description']) > 100 else task['description']
+    #                 response += f"   Description: {desc}\n"
+    #             response += f"   Status: {task.get('status', {}).get('status', 'Unknown')}\n"
+    #             response += f"   URL: {task.get('url', 'N/A')}\n\n"
             
-            if len(tasks) > 10:
-                response += f"... and {len(tasks) - 10} more tasks."
+    #         if len(tasks) > 10:
+    #             response += f"... and {len(tasks) - 10} more tasks."
             
-            self.driver.reply_to(message, response)
-        else:
-            self.driver.reply_to(message, f"Unexpected search results format: {results}")
+    #         self.driver.reply_to(message, response)
+    #     else:
+    #         self.driver.reply_to(message, f"Unexpected search results format: {results}")
+        self.driver.reply_to(message, "Search functionality is not implemented yet. \n TODO: ClickUp API does not support search tasks by name.")
 
     async def _execute_list_tasks(self, message: Message, draft: TaskViewDraft):
         """Execute list tasks operation."""

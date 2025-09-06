@@ -251,20 +251,20 @@ def delete_task(task_id: str) -> Tuple[bool, Any]:
     return _make_api_request(url, method="DELETE")
 
 
-def search_tasks(query: str, team_id: Optional[str] = None) -> Tuple[bool, Any]:
-    """Search for tasks. Returns (success, search_results_or_error)."""
-    cfg = get_config()
-    if cfg is None:
-        return False, "Missing CLICKUP_API_TOKEN in environment."
+# def search_tasks(query: str, team_id: Optional[str] = None) -> Tuple[bool, Any]:
+#     """Search for tasks. Returns (success, search_results_or_error)."""
+#     cfg = get_config()
+#     if cfg is None:
+#         return False, "Missing CLICKUP_API_TOKEN in environment."
 
-    url = f"{cfg.base_url}/task"
-    params = [f"name={query}"]
-    if team_id:
-        params.append(f"team_ids[]={team_id}")
+#     url = f"{cfg.base_url}/task"
+#     params = [f"name={query}"]
+#     if team_id:
+#         params.append(f"team_ids[]={team_id}")
     
-    if params:
-        url += "?" + "&".join(params)
+#     if params:
+#         url += "?" + "&".join(params)
     
-    return _make_api_request(url)
+#     return _make_api_request(url)
 
 
